@@ -1,7 +1,8 @@
-#Start with normal Matrix game Matching pennies
+# Start with normal Matrix game Matching pennies
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import copy
 
 # Define the learning rates
 alpha = 0.8
@@ -68,12 +69,12 @@ class Player(object):
         # Try softmax first
         self.policy = np.exp(self.policy)/np.sum(np.exp(self.policy), axis=0) 
 
-def test_train(init_policy_p1, init_policy_p2, save_step=8000, epoch=1000000):
+def test_train(init_policy_p1, init_policy_p2, save_step=10, epoch=500):
   p1 = Player()
   p2 = Player()
   
-  p1.policy = init_policy_p1
-  p2.policy = init_policy_p2
+  p1.policy = copy.deepcopy(init_policy_p1)
+  p2.policy = copy.deepcopy(init_policy_p2)
 
   # Getting the start policy for reference.
   p1_prob_tracker = [p1.policy[0]]
@@ -109,7 +110,7 @@ def test_train(init_policy_p1, init_policy_p2, save_step=8000, epoch=1000000):
       else:
           p2.update_policy(lr_l)
 
-      if i % 50000 == 0:
+      if i % 50 == 0:
           print("At {}".format(i))
       if i % save_step == 0:
           p1_prob_tracker.append(p1.policy[0])
@@ -121,19 +122,24 @@ def test_train(init_policy_p1, init_policy_p2, save_step=8000, epoch=1000000):
   return p1_prob_tracker, p2_prob_tracker
   
         
-policy_test_list = [[1, 0], [0, 1], [0.5, 0.5], [0.2, 0.8], [0.8, 0.2]]
-
-p1_track, p2_track = test_train([1, 0], [0, 1], epoch=100000)
+policy_test_list = [[1, 0], [0, 1], [0.5, 0.5], [0.2, 0.8], [0.8, 0.2], [0.3, 0.7]]
 
 fig, ax = plt.subplots(nrows=3, ncols=2)
+fig.suptitle("Against Player2 - [0, 1]")
+counter = 0
 
-for row in ax:
-    for col in row:
-        col.plot(p1_track, 'C1', label='Player 1')
-        col.plot(p2_track, 'C2', label='Player 2')
-        plt.ylabel("Probability")
-        plt.xlabel("Time Step (10000)")
+for i, row in enumerate(ax):
+    for j, col in enumerate(row):
+        policy_now = policy_test_list[counter]
+        p1_track, p2_track = test_train(policy_test_list[counter], [0, 1])
+        col.set_title("Player 1 - {}".format(policy_test_list[counter]))
+        
+        col.plot(p1_track, 'C2', label='Player 1')
+        col.plot(p2_track, 'C3', label='Player 2')
+        col.set_ylabel("Probability")
+        col.set_xlabel("Time Step (10)")
         
         col.legend()
-
+        counter += 1
+fig.tight_layout(pad=0.5)
 plt.show()
