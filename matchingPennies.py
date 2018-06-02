@@ -115,7 +115,7 @@ def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=100000):
       else:
           p2.update_policy(lr_l)
       
-      if i % 1000 == 0:
+      if i % 10000 == 0:
           print("At {}".format(i))
       if i % save_step == 0:
           p1_prob_tracker.append(p1.policy[0])
