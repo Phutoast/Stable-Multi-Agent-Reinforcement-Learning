@@ -6,18 +6,20 @@ import copy
 
 # Define the learning rates
 alpha = 0.5
-
-# Learning rate matter!!!
 lr_w, lr_l = 0.001, 0.002 
 
 # Define the game 
-def matchingPennies(action1, action2):
+def prisoner(action1, action2):
     """
     Return the reward from player1 and player2 in the game 
     matching pennies.
     Args:
         1. action1 (0 or 1) - the action of player1
+            0 means betrays
+            1 means coop
         2. action2 (0 or 1) - the action of player2 
+            0 means betrays
+            1 means coop
     Returns:
         1. reward1 (-1 or 1) - the reward for player1
         2. reward2 (-1 or 1) - the reward for player2
@@ -32,10 +34,14 @@ def matchingPennies(action1, action2):
     if action2 != 0 and action2 != 1:
         raise ValueError("Action for player 2 should be 0 or 1")
 
-    if action1 == action2:
-        return 1, -1
-    else:
-        return -1, 1
+    if action1 == 0 and action2 == 0:
+        return -2, -2
+    elif action1 == 0 and action2 == 1:
+        return 0, -3 
+    elif action1 == 1 and action2 == 0:
+        return -3, 0 
+    elif action1 == 1 and action2 == 1:
+        return -1, -1
 
 class Player(object):
     def __init__(self):
@@ -43,7 +49,7 @@ class Player(object):
         self.Q = [0, 0]
 
         # Policy - just half.
-        self.policy = [0.8, 0.2]
+        self.policy = [0.5, 0.5]
         self.avg_policy = [0, 0]
 
         # Count at state - only one 
@@ -59,7 +65,8 @@ class Player(object):
     def update_avgPolicy(self):
         for i in range(len(self.policy)):
             self.avg_policy[i] += (1/self.count_state)*(self.policy[i] - self.avg_policy[i])
-
+        # self.avg_policy = np.exp(self.avg_policy)/np.sum(np.exp(self.avg_policy), axis=0)
+    
     def new_policy(self, a, lr):
         return min(self.policy[a], lr/(len(self.Q)-1))
 
@@ -70,7 +77,7 @@ class Player(object):
             if self.Q[i] == max(self.Q):
                 self.policy[i] += sum(self.new_policy(a, lr) for a in range(len(self.Q))if a != i) 
             else:
-                self.policy[i] -= change
+                self.policy[i] -= change 
         # Try to regularized it 
         self.policy = [p/sum(self.policy) for p in self.policy]
 
@@ -92,7 +99,7 @@ def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=100000):
       act_p1 = p1.sample_action()
       act_p2 = p2.sample_action()
 
-      p1_reward, p2_reward = matchingPennies(act_p1, act_p2)
+      p1_reward, p2_reward = prisoner(act_p1, act_p2)
 
       # Update the Q function - Simple, since no next state
       p1.Q[act_p1] = (1-alpha) * p1.Q[act_p1] + alpha*(p1_reward)    
@@ -115,7 +122,7 @@ def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=100000):
       else:
           p2.update_policy(lr_l)
       
-      if i % 1000 == 0:
+      if i % 10000 == 0:
           print("At {}".format(i))
       if i % save_step == 0:
           p1_prob_tracker.append(p1.policy[0])
@@ -141,7 +148,7 @@ for i, row in enumerate(ax):
         col.plot(p1_track, 'C2', label='Player 1')
         col.plot(p2_track, 'C3', label='Player 2')
         col.set_ylabel("Probability")
-        col.set_xlabel("Time Step (1000)")
+        col.set_xlabel("Time Step (10)")
         
         col.legend()
         counter += 1
