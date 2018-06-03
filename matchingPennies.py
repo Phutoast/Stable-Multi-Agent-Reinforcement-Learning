@@ -5,10 +5,16 @@ import matplotlib.pyplot as plt
 import copy
 
 # Define the learning rates
-alpha = 0.5
+alpha_no_decay = 0.5
 
 # Learning rate matter!!!
-lr_w, lr_l = 0.001, 0.002 
+lr_w_no_decay, lr_l_no_decay = 0.001, 0.002 
+
+def alpha_decay(t):
+    return 1/(100 + t/10000)
+
+def lr_w_decay(t):
+    return 1/(20000 + t)
 
 # Define the game 
 def matchingPennies(action1, action2):
@@ -74,7 +80,7 @@ class Player(object):
         # Try to regularized it 
         self.policy = [p/sum(self.policy) for p in self.policy]
 
-def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=100000):
+def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=500000):
   p1 = Player()
   p2 = Player()
   
@@ -98,6 +104,7 @@ def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=100000):
       p1_reward, p2_reward = matchingPennies(act_p1, act_p2)
 
       # Update the Q function - Simple, since no next state
+      alpha = alpha_decay(i)
       p1.Q[act_p1] = (1-alpha) * p1.Q[act_p1] + alpha*(p1_reward)    
       p2.Q[act_p2] = (1-alpha) * p2.Q[act_p2] + alpha*(p2_reward)
 
@@ -107,6 +114,9 @@ def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=100000):
 
       p2.count_state += 1
       p2.update_avgPolicy()
+
+      lr_w = lr_w_decay(i)
+      lr_l = lr_w * 2
 
       if p1.get_expected_val(p1.policy) > p1.get_expected_val(p1.avg_policy):
           p1.update_policy(lr_w)
@@ -130,7 +140,7 @@ def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=100000):
   return p1_prob_tracker, p2_prob_tracker, (p1.policy, p2.policy)
         
 policy_test_list = [[1, 0], [0, 1], [0.5, 0.5], [0.2, 0.8], [0.8, 0.2], [0.3, 0.7]]
-y_policy = [0.5, 0.5]
+y_policy = [0.0, 1.0]
 final_policy_all = []
 
 fig, ax = plt.subplots(nrows=3, ncols=2)
