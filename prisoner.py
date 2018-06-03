@@ -11,8 +11,7 @@ lr_w, lr_l = 0.001, 0.002
 # Define the game 
 def prisoner(action1, action2):
     """
-    Return the reward from player1 and player2 in the game 
-    matching pennies.
+    Return the reward from player1 and player2 in the game prisoner dilema 
     Args:
         1. action1 (0 or 1) - the action of player1
             0 means betrays
@@ -21,8 +20,8 @@ def prisoner(action1, action2):
             0 means betrays
             1 means coop
     Returns:
-        1. reward1 (-1 or 1) - the reward for player1
-        2. reward2 (-1 or 1) - the reward for player2
+        1. reward1 - the reward for player1
+        2. reward2 - the reward for player2
     Raises:
         1. ValueError - when the input is not 0 or not 1
     """
@@ -87,6 +86,8 @@ def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=100000):
   
   p1.policy = copy.deepcopy(init_policy_p1)
   p2.policy = copy.deepcopy(init_policy_p2)
+  del init_policy_p1
+  del init_policy_p2
 
   # Getting the start policy for reference.
   p1_prob_tracker = [p1.policy[0]]

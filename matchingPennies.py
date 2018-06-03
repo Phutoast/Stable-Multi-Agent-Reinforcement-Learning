@@ -80,6 +80,9 @@ def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=100000):
   
   p1.policy = copy.deepcopy(init_policy_p1)
   p2.policy = copy.deepcopy(init_policy_p2)
+  
+  del init_policy_p1
+  del init_policy_p2
 
   # Getting the start policy for reference.
   p1_prob_tracker = [p1.policy[0]]
