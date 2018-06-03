@@ -96,11 +96,10 @@ Hyperparameter - alpha = 0.5, lr_w, lr_l = 0.001, 0.002
 ![alt-text](img/fig5.png)
 
 ### Iterated Prisoner's Dilemma
-The algorithm somewhat implement tit-for-tat strategy (although the start policy should be both cooperative).
-
-The result policy is
 Hyperparameter - alpha = 0.8, gamma = 0.99, lr_w, lr_l = 0.001, 0.002
-Run for 300,00
+
+Run for 300,000
+The algorithm somewhat implement tit-for-tat strategy (although the start policy should be both cooperative).
 
 (prob of defect, prob of coop)
 
@@ -111,3 +110,12 @@ Run for 300,00
 | Defect/Coop | (0.742, 0.258) (0.958, 0.042) |
 | Coop/Defect | (0.9, 0.1) (1.0, 0.0) |
 | Coop/Coop | (0.646, 0.354) (0.654, 0.346) |
+
+With the decayed learning rate
+| Last State (player1/player2) | Final Policy (player1/player2) |
+| ---------------------------- | ------------------------------ |
+| Start | (1.0, 0.0) (1.0, 0.0) |
+| Defect/Defect | (1.0, 0.0) (1.0, 0.0) |
+| Defect/Coop | (1.0, 0.0) (0.9477544789363, 0.05224552106369995) |
+| Coop/Defect | (0.959322957194368, 0.04067704280563206) (0.9966128969149801, 0.003387103085019939) |
+| Coop/Coop | (0.6145160653040006, 0.38548393469599934) (0.6366347399222625, 0.3633652600777376) |

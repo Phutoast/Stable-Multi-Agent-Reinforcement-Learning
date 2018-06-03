@@ -5,11 +5,17 @@ import matplotlib.pyplot as plt
 import copy
 
 # Define the learning rate
-alpha = 0.8
+alpha_no_decay = 0.8
 gamma = 0.99
 
 # Learning rate matter!!!
-lr_w, lr_l = 0.001, 0.002 
+lr_w_no_decay, lr_l_no_decay = 0.001, 0.002 
+
+def alpha_decay(t):
+    return 1/(100 + t/10000)
+
+def lr_w_decay(t):
+    return 1/(20000 + t)
 
 # Define the game first
 def iter_prisoner(action1, action2):
@@ -115,7 +121,7 @@ class Player(object):
         # Try to regularized it 
         self.policy[state] = [p/sum(self.policy[state]) for p in self.policy[state]]
 
-def test_train(save_step=1000, epoch=100000):
+def test_train(save_step=1000, iter_total=100000):
     p1 = Player()
     p2 = Player()
     
@@ -125,7 +131,7 @@ def test_train(save_step=1000, epoch=100000):
     # del init_policy_p2
 
     # Doing the tracker later.
-    for epoch in range(100000):
+    for epoch in range(iter_total):
         # Running the game, fix the range to be 10 games
         for i in range(10):
             if i == 0:
@@ -135,6 +141,8 @@ def test_train(save_step=1000, epoch=100000):
             act_p2 = p2.sample_action(state_now)
 
             (p1_reward, p2_reward), new_state = iter_prisoner(act_p1, act_p2)
+
+            alpha = alpha_decay(epoch)
             
             # Update Q function
             p1.Q[state_now][act_p1] = (1-alpha) * p1.Q[state_now][act_p1] + alpha*(p1_reward + gamma*p1.Q[new_state][act_p1])    
@@ -143,6 +151,9 @@ def test_train(save_step=1000, epoch=100000):
             # Update Average Policy
             p1.update_avgPolicy(state_now)
             p2.update_avgPolicy(state_now)
+
+            lr_w = lr_w_decay(epoch)
+            lr_l = lr_w * 2
 
             if p1.get_expected_val(p1.policy, state_now) > p1.get_expected_val(p1.avg_policy, state_now):
                 p1.update_policy(state_now, lr_w)
@@ -159,8 +170,10 @@ def test_train(save_step=1000, epoch=100000):
         if epoch%10000 == 0:
             print("At, ", epoch)
 
-    return p1.policy, p2.policy 
+    return p1, p2 
 
 p1, p2 = test_train()
-print(p1)
-print(p2)
+print(p1.policy)
+print(p2.policy)
+print(p1.Q)
+print(p2.Q)
