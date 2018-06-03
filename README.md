@@ -111,7 +111,8 @@ The algorithm somewhat implement tit-for-tat strategy (although the start policy
 | Coop/Defect | (0.9, 0.1) (1.0, 0.0) |
 | Coop/Coop | (0.646, 0.354) (0.654, 0.346) |
 
-With the decayed learning rate
+With the decayed learning rate with 300000 iterations
+
 | Last State (player1/player2) | Final Policy (player1/player2) |
 | ---------------------------- | ------------------------------ |
 | Start | (1.0, 0.0) (1.0, 0.0) |
