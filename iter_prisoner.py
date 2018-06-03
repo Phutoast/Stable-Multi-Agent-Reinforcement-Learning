@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import copy
 
 # Define the learning rate
-alpha = 0.5
+alpha = 0.8
 gamma = 0.99
 
 # Learning rate matter!!!
@@ -125,7 +125,7 @@ def test_train(save_step=1000, epoch=100000):
     # del init_policy_p2
 
     # Doing the tracker later.
-    for epoch in range(10000):
+    for epoch in range(100000):
         # Running the game, fix the range to be 10 games
         for i in range(10):
             if i == 0:
@@ -156,7 +156,11 @@ def test_train(save_step=1000, epoch=100000):
 
             state_now = new_state
 
+        if epoch%10000 == 0:
+            print("At, ", epoch)
+
     return p1.policy, p2.policy 
 
 p1, p2 = test_train()
 print(p1)
+print(p2)

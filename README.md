@@ -38,7 +38,6 @@ Converged Policy
 | (0.8, 0.2) | (0.44179681274900373, 0.5582031872509963), (0.53599203187251, 0.46400796812749) |
 | (0.3, 0.7) | (0.5680000000000003, 0.4319999999999997), (0.484, 0.516) |
 
-
 Non-Converged Policy
 
 ![alt-text](img/fig3.png)
@@ -68,3 +67,20 @@ All the test cases are the same, and all converges to Nash Equilibrium(all defec
 Hyperparameter - alpha = 0.5, lr_w, lr_l = 0.001, 0.002
 
 ![alt-text](img/fig5.png)
+
+### Iterated Prisoner's Dilemma
+The algorithm somewhat implement tit-for-tat strategy (although the start policy should be both cooperative). 
+
+The result policy is 
+Hyperparameter - alpha = 0.8, gamma = 0.99, lr_w, lr_l = 0.001, 0.002
+Run for 300,00
+
+(prob of defect, prob of coop)
+
+| Last State (player1/player2) | Final Policy (player1/player2) |
+| ---------------------------- | ------------------------------ |
+| Start | (1.0, 0.0) (1.0, 0.0) |
+| Defect/Defect | (1.0, 0.0) (1.0, 0.0) |
+| Defect/Coop | (0.742, 0.258) (0.958, 0.042) |
+| Coop/Defect | (0.9, 0.1) (1.0, 0.0) |
+| Coop/Coop | (0.646, 0.354) (0.654, 0.346) | 
