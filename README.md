@@ -1,4 +1,4 @@
-# More Stable Multi-Agent Reinfocement Learning
+# More Stable Multi-Agent Reinforcement Learning
 This project aims to test/implement various algorithms that are related to Multi-agent RL to see whether these algorithm can lead the agent to more stable traing and/or desire behavior (Nash Equilibrium) 
 
 Right now we test most of the algorithms on Iterated Prisoner's Dilema to see whether tit-for-tat behavior arises from these kind of training. 
