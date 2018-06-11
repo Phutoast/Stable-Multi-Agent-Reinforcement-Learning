@@ -1,5 +1,3 @@
-# TODO - Change the update rule, and chaning the payoff.
-
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -19,7 +17,7 @@ p2 = player.Player()
 
 p1_val_tracker, p2_val_tracker = [], []
 
-for epoch in range(5000):
+for epoch in range(2000):
     # getting the first one since grad only return 1 elem tuple
     grad_player1_1, grad_player1_2 = torch.autograd.grad(game.player1ValueFunction(p1, p2), 
                                                     (p1.unnormal_policy, p2.unnormal_policy), 
