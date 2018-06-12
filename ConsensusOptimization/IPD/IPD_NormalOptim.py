@@ -5,7 +5,7 @@ import game
 
 import matplotlib.pyplot as plt
 
-delta = 0.1
+delta = 0.5
 
 p1 = player.Player()
 p2 = player.Player()

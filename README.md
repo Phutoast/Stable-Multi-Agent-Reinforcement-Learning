@@ -5,8 +5,9 @@ Right now we test most of the algorithms on Iterated Prisoner's Dilema to see wh
 
 ## Algorithms 
 Right now, I have planned to implement 3 algorithms 
-		1. Multiagent learning using a variable learning rate (https://www.sciencedirect.com/science/article/pii/S0004370202001212) 
-		2. Consensus Optimization from https://arxiv.org/abs/1705.10461
-		3. Learning with Opponent-Learning Awareness (https://arxiv.org/abs/1709.04326)
+1. Multiagent learning using a variable learning rate (https://www.sciencedirect.com/science/article/pii/S0004370202001212) 
+2. Consensus Optimization from https://arxiv.org/abs/1705.10461
+3. Learning with Opponent-Learning Awareness (https://arxiv.org/abs/1709.04326)
+
 
 
