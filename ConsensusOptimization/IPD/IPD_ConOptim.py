@@ -5,8 +5,6 @@ import game
 
 import matplotlib.pyplot as plt
 
-# Best - 4.5, 0.5 
-
 delta = 4.5 
 reg_param = 0.5
 
@@ -62,4 +60,4 @@ def gridSearch():
                 candidate_params.append(poss_param)
     return candidate_params
 
- train(delta, reg_param)
+train(delta, reg_param)
