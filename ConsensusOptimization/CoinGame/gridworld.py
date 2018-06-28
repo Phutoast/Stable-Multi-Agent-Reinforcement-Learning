@@ -25,14 +25,6 @@ EMPTY_MAP = ['#######',
              '#     #',
              '#######']
 
-TEST_MAP = [ '#######',
-             '#P 1 Q#',
-             '#     #',
-             '#     #',
-             '#     #',
-             '#     #',
-             '#######']
-
 # Adding a Color to the map
 COLOR_MAP = {'#': (0, 0, 0), ' ': (1, 1, 1), 'P': (1, 0, 0), 'Q': (0, 1, 0), '1':(0, 0, 1), '2':(1, 1, 0)}
 
@@ -111,6 +103,7 @@ def random_map(empty_map, num_p1_reward=1, num_p2_reward=1, size=10):
             col = random.randint(1, size-2)
             empty_map[row] = replace_string(empty_map[row], col, '1')
     else: 
+        print("YES !!")
         for _ in range(num_p2_reward):
             row = random.randint(1, size-2)
             col = random.randint(1, size-2)
@@ -130,7 +123,7 @@ def random_map(empty_map, num_p1_reward=1, num_p2_reward=1, size=10):
 
 def make_game():
     return ascii_art.ascii_art_to_game(
-                                       TEST_MAP,
+                                       random_map(EMPTY_MAP, size=7),
                                        what_lies_beneath=' ',
                                        sprites={'P': PlayerSprite1, 'Q': PlayerSprite2})
 
