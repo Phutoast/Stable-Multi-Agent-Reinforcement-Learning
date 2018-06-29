@@ -73,7 +73,7 @@ class Game(object):
 game = Game()
 
 # Since pytorch accept [batch_size x channel x width x height]
-def renderer(obs, scale=5):
+def renderer(obs, scale=8):
     renderer_normal = rendering.ObservationToArray(COLOR_MAP, dtype=np.float32)
     obs_normal = renderer_normal(obs)
     obs_normal = trans_image(obs_normal)
@@ -103,7 +103,6 @@ def random_map(empty_map, num_p1_reward=1, num_p2_reward=1, size=10):
             col = random.randint(1, size-2)
             empty_map[row] = replace_string(empty_map[row], col, '1')
     else: 
-        print("YES !!")
         for _ in range(num_p2_reward):
             row = random.randint(1, size-2)
             col = random.randint(1, size-2)
