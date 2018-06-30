@@ -13,13 +13,23 @@ import gridworld
 import model
 import os
 import utils
+import itertools
 
 ACTIONS = [0, 1, 2, 3]
 
 # Hyperparameters 
 gamma = 0.99
 learning_rate = 7e-4
-max_eps_len = 20
+# learning_rate = 0.005 
+
+max_eps_len = 15
+eta = 10
+
+p1_eats_own = 0
+p2_eats_own = 0
+
+p1_eats_other = 0
+p2_eats_other = 0
 
 loss = torch.tensor(0)
 saving_eps = 10000
@@ -41,7 +51,9 @@ game = gridworld.game
 
 # Optimizer
 p1_optimizer = optim.RMSprop(p1.parameters(), learning_rate, eps=0.1)
+# p1_optimizer = optim.SGD(p1.parameters(), learning_rate)
 p2_optimizer = optim.RMSprop(p2.parameters(), learning_rate, eps=0.1)
+# p2_optimizer = optim.SGD(p2.parameters(), learning_rate)
 
 writer = SummaryWriter(f'{output_path}/runs')
 
@@ -49,6 +61,31 @@ try:
     os.mkdir(f'{output_path}/images')
 except FileExistsError:
     print("Directory Created")
+
+def consensus_grad_calculate(p1, p2, p1_loss, p2_loss):
+    var = [p for p in p1.parameters()] + [p for p in p2.parameters()]
+    grad_player1_1 = torch.autograd.grad(p1_loss, p1.parameters(), create_graph=True) 
+    grad_player2_2 = torch.autograd.grad(p2_loss, p2.parameters(), create_graph=True)  
+
+    grad_all = grad_player1_1 + grad_player2_2
+
+    reg = 0.5 * sum(torch.sum(g**2) for g in grad_all)
+    Jgrads = torch.autograd.grad(reg, var)
+
+    final_grad = [g + 30. * j for g, j in zip(grad_all, Jgrads)]
+    return final_grad 
+
+def LOLA_grad_calculate(p1, p2, p1_loss, p2_loss, dis_reward_both):
+    total_dis_reward_1, total_dis_reward_2 = dis_reward_both
+
+    grad_player1_1 = torch.autograd.grad(p1_loss, p1.parameters(), create_graph=True) 
+    grad_player2_2 = torch.autograd.grad(p2_loss, p2.parameters(), create_graph=True)  
+
+    update1 = [g1 + eta * total_dis_reward_2 * (g1 * g2) for g1, g2 in zip(grad_player1_1, grad_player2_2)]
+    update2 = [g2 + eta * total_dis_reward_1 * (g1 * g2) for g1, g2 in zip(grad_player1_1, grad_player2_2)]
+    
+    return update1 + update2 
+
 
 def calculate_loss(observation, agent, action_taken, reward_all, dis_reward_all, done, last_reward):
     loss = 0
@@ -78,6 +115,7 @@ def calculate_loss(observation, agent, action_taken, reward_all, dis_reward_all,
         value_loss = l2_loss(pred_val, target_val)
 
         loss += policy_loss - 0.01 * entropy_loss + 0.5 * value_loss
+        # loss += policy_loss + 0.5 * value_loss
 
     return loss/len(observation)
 
@@ -121,6 +159,18 @@ for eps in range(100000):
 
         p1_reward_all.append(p1_reward)
         p2_reward_all.append(p2_reward)
+       
+        if p1_reward >= -1 and p1_reward != 0:
+            p1_eats_own += 1
+        
+        if p2_reward >= -1 and p2_reward != 0:
+            p2_eats_own += 1
+
+        if p1_reward <= -1:
+            p2_eats_other += 1
+        
+        if p2_reward <= -1:
+            p1_eats_other += 1
 
         if done:
             break
@@ -136,13 +186,20 @@ for eps in range(100000):
 
     p1_loss = calculate_loss(observation, p1, p1_action_taken, p1_reward_all, p1_dis_reward_all, done, float(p1_reward))
     p2_loss = calculate_loss(observation, p2, p2_action_taken, p2_reward_all, p2_dis_reward_all, done, float(p2_reward))
+
+    final_grad = consensus_grad_calculate(p1, p2, p1_loss, p2_loss) 
+    # final_grad = LOLA_grad_calculate(p1, p2, p1_loss, p2_loss, (p1_dis_reward_all[0], p2_dis_reward_all[0]))
+    params = itertools.chain(p1.parameters(), p2.parameters())
+
+    for p, g in zip(params, final_grad):
+        p.grad = g
     
-    p1_loss.backward()
-    nn.utils.clip_grad_norm_(p1.parameters(), 40.)
+    # p1_loss.backward()
+    # nn.utils.clip_grad_norm_(p1.parameters(), 40.)
     p1_optimizer.step()
     
-    p2_loss.backward()
-    nn.utils.clip_grad_norm_(p2.parameters(), 40.)
+    # p2_loss.backward()
+    # nn.utils.clip_grad_norm_(p2.parameters(), 40.)
     p2_optimizer.step()
 
     if eps%eps_collect_image == 0:
@@ -150,8 +207,8 @@ for eps in range(100000):
         write_gif([gridworld.trans_image(o) for o in observation], file_name, fps=5)
 
     if eps%eps_collect_data == 0:
-        p1_avg_reward = p1_reward/eps_collect_data
-        p2_avg_reward = p2_reward/eps_collect_data
+        p1_avg_reward = p1_total_reward/eps_collect_data
+        p2_avg_reward = p2_total_reward/eps_collect_data
 
         print("-----------------------")
         print(f"At episode {eps}")
@@ -164,12 +221,33 @@ for eps in range(100000):
         print(f"Player 1 Sampled Policy {p1_policy}")
         print(f"Player 2 Sampled Policy {p2_policy}")
 
+        print(f"Player 1 Sampled value {p1_value}")
+        print(f"Player 2 Sampled value {p2_value}")
+        
+        print(f"Player 1 eats it own reward {p1_eats_own}")
+        print(f"Player 2 eats it own reward {p2_eats_own}")
+        
+        print(f"Player 1 eats it other reward {p1_eats_other}")
+        print(f"Player 2 eats it other reward {p2_eats_other}")
+
         writer.add_scalar('data/player1_loss', p1_loss, eps)
         writer.add_scalar('data/player2_loss', p2_loss, eps)
         
         writer.add_scalar('data/player1_avg_reward', p1_avg_reward, eps)
         writer.add_scalar('data/player2_avg_reward', p2_avg_reward, eps)
-
+        
+        writer.add_scalar('data/player1_own_reward', p1_eats_own, eps)
+        writer.add_scalar('data/player2_own_reward', p2_eats_own, eps)
+        
+        writer.add_scalar('data/player1_other_reward', p1_eats_other, eps)
+        writer.add_scalar('data/player2_other_reward', p2_eats_other, eps)
+        
         p1_total_reward = 0 
         p2_total_reward = 0  
+        
+        p1_eats_own = 0
+        p2_eats_own = 0
+
+        p1_eats_other = 0
+        p2_eats_other = 0
 
