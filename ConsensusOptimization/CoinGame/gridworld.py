@@ -37,6 +37,9 @@ class Game(object):
         
         self.p1_played = False
         self.p2_played = False
+
+        self.p1_eats_own = None
+        self.p2_eats_own = None
         
         self.old_board = []
 
@@ -52,6 +55,9 @@ class Game(object):
 
         self.p1_played = False
         self.p2_played = False
+        
+        self.p1_eats_own = None
+        self.p2_eats_own = None
         return obs, reward, discount
 
     def step(self, actions):
@@ -152,10 +158,12 @@ class PlayerSprite1(prefab_sprites.MazeWalker):
             if ord('1') == board[self.position]:
                 game.reward_p1 += 1
                 game.is_p1_in = True
+                game.p1_eats_own = True
             elif ord('2') == board[self.position]:
                 game.reward_p1 += 1
                 game.reward_p2 -= 2
                 game.is_p1_in = True
+                game.p1_eats_own = False
             
 class PlayerSprite2(prefab_sprites.MazeWalker):
     def __init__(self, corner, position, character):
@@ -183,9 +191,11 @@ class PlayerSprite2(prefab_sprites.MazeWalker):
                 game.reward_p1 -= 2
                 game.reward_p2 += 1 
                 game.is_p2_in = True 
+                game.p2_eats_own = False
             elif ord('2') == game.old_board[self.position]:
                 game.reward_p2 += 1
                 game.is_p2_in = True 
+                game.p2_eats_own = True
 
 def trans_image(img):
     return np.transpose(img, (1, 2, 0))

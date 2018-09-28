@@ -34,6 +34,8 @@ With Decayed Learning Rate and alpha as described in the paper (500,000 iteratio
 | (0.8, 0.2) | (0.4994951615250192, 0.5005048384749808), (0.5088305830391315, 0.4911694169608684) |
 | (0.3, 0.7) | (0.5543023883581103, 0.44569761164188976), (0.4521255110063833, 0.5478744889936168) |
 
+Looking the evolution of the players (plotted with 200000 iterations)
+![alt-text](img/fig8.png)
 
 #### Against [0.5, 0.5] for 100,000 iterations
 For some experiment, the policy converges, some aren't.
@@ -78,6 +80,9 @@ With Decayed Learning Rate and alpha as described in the paper
 | (0.2, 0.8) | (0.5124668170515285, 0.48753318294847153), (0.4925182706221096, 0.5074817293778904) |
 | (0.8, 0.2) | (0.4742120190045302, 0.5257879809954699), (0.48429595716191093, 0.5157040428380891) |
 | (0.3, 0.7) | (0.511557823263268, 0.488442176736732), (0.5026784760307389, 0.49732152396926116) |
+
+Looking the evolution of the players (plotted with 200000 iterations)
+![alt-text](img/fig9.png)
 
 
 ### Prisoner's Dilemma

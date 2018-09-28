@@ -80,4 +80,3 @@ for epoch in range(10000):
         print("At", epoch)
         helper.display_result(x_fake.data.numpy(), cmap='Blues')
         plt.savefig("image/" + str(epoch) + ".png")
-

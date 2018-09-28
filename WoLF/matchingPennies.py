@@ -80,7 +80,7 @@ class Player(object):
         # Try to regularized it 
         self.policy = [p/sum(self.policy) for p in self.policy]
 
-def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=500000):
+def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=200000):
   p1 = Player()
   p2 = Player()
   
@@ -138,33 +138,43 @@ def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=500000):
   print("Policy p2 - ", p2.policy)
   
   return p1_prob_tracker, p2_prob_tracker, (p1.policy, p2.policy)
-        
+
 policy_test_list = [[1, 0], [0, 1], [0.5, 0.5], [0.2, 0.8], [0.8, 0.2], [0.3, 0.7]]
-y_policy = [0.0, 1.0]
-final_policy_all = []
+y_policy = [0.5, 0.5]
 
-fig, ax = plt.subplots(nrows=3, ncols=2)
-fig.suptitle("Against Player2 - " + str(y_policy))
-counter = 0
+def plot_learning_curve(policy_test_list, y_policy,is_evol=False ,nrows=3, ncols=2):
+    assert len(policy_test_list) == nrows * ncols
+    final_policy_all = []
+    fig, ax = plt.subplots(nrows=nrows, ncols=ncols)
+    if is_evol:
+        fig.suptitle(f"Evolution of player: where player 2 is {str(y_policy)}")
+    else:
+        fig.suptitle("Against Player2 - " + str(y_policy))
 
-for i, row in enumerate(ax):
-    for j, col in enumerate(row):
-        policy_now = policy_test_list[counter]
-        p1_track, p2_track, final_policy = test_train(policy_test_list[counter], y_policy)
+    for i, ax in enumerate(ax.flat):
+        policy_now = policy_test_list[i]
+        p1_track, p2_track, final_policy = test_train(policy_test_list[i], y_policy)
         final_policy_all.append(final_policy)
-        col.set_title("Player 1 - {}".format(policy_test_list[counter]))
-        
-        col.plot(p1_track, 'C2', label='Player 1')
-        col.plot(p2_track, 'C3', label='Player 2')
-        col.set_ylabel("Probability")
-        col.set_xlabel("Time Step (1000)")
-        
-        col.legend()
-        counter += 1
 
-for init_p, final_p in zip(policy_test_list, final_policy_all):
-    print(init_p, end='')
-    print(" |", final_p)
+        if is_evol:
+            ax.set_title("Player 1 - {}".format(policy_test_list[i]))
+            ax.scatter(p1_track, p2_track, s=[i/10 for i in range(len(p1_track))])
+        else:
+            ax.set_title("Player 1 - {}".format(policy_test_list[i]))
 
-fig.tight_layout(pad=0.5)
-plt.show()
+            ax.plot(p1_track, 'C2', label='Player 1')
+            ax.plot(p2_track, 'C3', label='Player 2')        
+
+            ax.set_ylabel("Probability")
+            ax.set_xlabel("Time Step (1000)")
+            
+            ax.legend()
+
+    for init_p, final_p in zip(policy_test_list, final_policy_all):
+        print(init_p, end='')
+        print(" |", final_p)
+
+    fig.tight_layout(pad=0.5)
+    plt.show()
+
+plot_learning_curve(policy_test_list, y_policy, nrows=3, ncols=2, is_evol=True)

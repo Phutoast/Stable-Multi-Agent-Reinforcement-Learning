@@ -22,8 +22,8 @@ gamma = 0.99
 learning_rate = 7e-4
 # learning_rate = 0.005 
 
-max_eps_len = 15
-eta = 10
+max_eps_len = 20 
+eta = 3
 
 p1_eats_own = 0
 p2_eats_own = 0
@@ -72,7 +72,7 @@ def consensus_grad_calculate(p1, p2, p1_loss, p2_loss):
     reg = 0.5 * sum(torch.sum(g**2) for g in grad_all)
     Jgrads = torch.autograd.grad(reg, var)
 
-    final_grad = [g + 30. * j for g, j in zip(grad_all, Jgrads)]
+    final_grad = [g + 20. * j for g, j in zip(grad_all, Jgrads)]
     return final_grad 
 
 def LOLA_grad_calculate(p1, p2, p1_loss, p2_loss, dis_reward_both):
@@ -81,8 +81,8 @@ def LOLA_grad_calculate(p1, p2, p1_loss, p2_loss, dis_reward_both):
     grad_player1_1 = torch.autograd.grad(p1_loss, p1.parameters(), create_graph=True) 
     grad_player2_2 = torch.autograd.grad(p2_loss, p2.parameters(), create_graph=True)  
 
-    update1 = [g1 + eta * total_dis_reward_2 * (g1 * g2) for g1, g2 in zip(grad_player1_1, grad_player2_2)]
-    update2 = [g2 + eta * total_dis_reward_1 * (g1 * g2) for g1, g2 in zip(grad_player1_1, grad_player2_2)]
+    update1 = [g1 + eta * total_dis_reward_2 * ((g1 * g2) + g2) for g1, g2 in zip(grad_player1_1, grad_player2_2)]
+    update2 = [g2 + eta * total_dis_reward_1 * ((g1 * g2) + g1) for g1, g2 in zip(grad_player1_1, grad_player2_2)]
     
     return update1 + update2 
 
@@ -90,7 +90,7 @@ def LOLA_grad_calculate(p1, p2, p1_loss, p2_loss, dis_reward_both):
 def calculate_loss(observation, agent, action_taken, reward_all, dis_reward_all, done, last_reward):
     loss = 0
     assert len(observation) == len(action_taken) == len(reward_all) 
-    hx, cx = torch.zeros(1, 32), torch.zeros(1, 32)
+    hx, cx = torch.zeros(1, 64), torch.zeros(1, 64)
 
     for i, (o, a, r, dr) in enumerate(zip(observation, action_taken, reward_all, dis_reward_all)):
         obs_torch = torch.from_numpy(o).unsqueeze(0).float()
@@ -122,8 +122,8 @@ def calculate_loss(observation, agent, action_taken, reward_all, dis_reward_all,
 for eps in range(100000):
     # Start the game 
     obs, reward, _ = game.reset()
-    p1_hx, p1_cx = torch.zeros(1, 32), torch.zeros(1, 32)
-    p2_hx, p2_cx = torch.zeros(1, 32), torch.zeros(1, 32)
+    p1_hx, p1_cx = torch.zeros(1, 64), torch.zeros(1, 64)
+    p2_hx, p2_cx = torch.zeros(1, 64), torch.zeros(1, 64)
     
     observation = []
     p1_action_taken, p2_action_taken = [], []
@@ -160,19 +160,16 @@ for eps in range(100000):
         p1_reward_all.append(p1_reward)
         p2_reward_all.append(p2_reward)
        
-        if p1_reward >= -1 and p1_reward != 0:
-            p1_eats_own += 1
-        
-        if p2_reward >= -1 and p2_reward != 0:
-            p2_eats_own += 1
-
-        if p1_reward <= -1:
-            p2_eats_other += 1
-        
-        if p2_reward <= -1:
-            p1_eats_other += 1
-
         if done:
+            if game.p1_eats_own:
+                p1_eats_own += 1
+            elif not game.p1_eats_own is None:
+                p1_eats_other += 1
+            
+            if game.p2_eats_own:
+                p2_eats_own += 1
+            elif not game.p1_eats_own is None:
+                p2_eats_other += 1
             break
 
         obs = next_obs
@@ -195,11 +192,11 @@ for eps in range(100000):
         p.grad = g
     
     # p1_loss.backward()
-    # nn.utils.clip_grad_norm_(p1.parameters(), 40.)
+    nn.utils.clip_grad_norm_(p1.parameters(), 40.)
     p1_optimizer.step()
     
     # p2_loss.backward()
-    # nn.utils.clip_grad_norm_(p2.parameters(), 40.)
+    nn.utils.clip_grad_norm_(p2.parameters(), 40.)
     p2_optimizer.step()
 
     if eps%eps_collect_image == 0:
