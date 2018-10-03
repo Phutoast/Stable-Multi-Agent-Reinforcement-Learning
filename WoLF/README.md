@@ -89,7 +89,11 @@ Looking the evolution of the players (plotted with 200000 iterations)
 
 
 ### Prisoner's Dilemma
-Same setting as the matching pennies. Action at position 0 means defect, and at position 1 means cooperate.
+Same setting as the matching pennies. Action at position 0 means defect, and at position 1 means cooperate. As expected, the gradient looks like 
+
+![alt-text](img/fig11.png)
+
+so the policy should reach the edge. 
 
 #### Against [0, 1] for 100,000 iterations
 All the test cases are the same, and all converges to Nash Equilibrium(all defect).
