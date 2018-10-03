@@ -1,8 +1,12 @@
 # Start with normal Matrix game Matching pennies
+# TODO: Generalize the code
+# TODO: Better code -- Meshgrid
 import numpy as np
 import math
 import matplotlib.pyplot as plt
 import copy
+
+import itertools
 
 # Define the learning rates
 alpha_no_decay = 0.5
@@ -15,6 +19,10 @@ def alpha_decay(t):
 
 def lr_w_decay(t):
     return 1/(20000 + t)
+
+# Define the game here
+r_11, r_12, r_21, r_22 = 1, -1, -1, 1 
+c_11, c_12, c_21, c_22 = -1, 1, 1, -1 
 
 # Define the game 
 def matchingPennies(action1, action2):
@@ -37,11 +45,15 @@ def matchingPennies(action1, action2):
     
     if action2 != 0 and action2 != 1:
         raise ValueError("Action for player 2 should be 0 or 1")
-
-    if action1 == action2:
-        return 1, -1
-    else:
-        return -1, 1
+    
+    if action1 == 0 and action2 == 0:
+        return r_11, c_11
+    elif action1 == 0 and action2 == 1:
+        return r_12, c_12 
+    elif action1 == 1 and action2 == 0:
+        return r_21, c_21
+    elif action1 == 1 and action2 == 1:
+        return r_22, c_22 
 
 class Player(object):
     def __init__(self):
@@ -177,4 +189,33 @@ def plot_learning_curve(policy_test_list, y_policy,is_evol=False ,nrows=3, ncols
     fig.tight_layout(pad=0.5)
     plt.show()
 
-plot_learning_curve(policy_test_list, y_policy, nrows=3, ncols=2, is_evol=True)
+def get_gradient(p1_policy, p2_policy):
+    u = r_11 - r_12 - r_21 + r_22
+    u_p = c_11 - c_12 - c_21 + c_22
+
+    grad_p1 = p2_policy * u + (r_12 - r_22) 
+    grad_p2 = p1_policy * u_p + (c_12 - c_22)
+
+    return grad_p1, grad_p2
+
+def plot_gradient():
+    # Could be better with meshgrid 
+    X_cord = [i * 0.05 for i in range(0, 20)]
+    Y_cord = [i * 0.05 for i in range(0, 20)]
+
+    all_cord = list(itertools.product(X_cord, Y_cord))
+    X, Y = zip(*all_cord)
+
+    x_y_comp = [get_gradient(*xy) for xy in all_cord]
+    U, V = zip(*x_y_comp)
+
+    fig, ax = plt.subplots()
+    q = ax.quiver(X, Y, U, V)
+    ax.quiverkey(q, X=0.3, Y=1.1, U=10, label="Gradient Field")
+
+    plt.show()
+
+
+# plot_learning_curve(policy_test_list, y_policy, nrows=3, ncols=2, is_evol=True)
+plot_gradient()
+
