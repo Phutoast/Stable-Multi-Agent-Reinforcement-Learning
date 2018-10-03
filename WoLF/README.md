@@ -6,6 +6,9 @@ Implementation for the paper "Multiagent Learning Using a Variable Learning Rate
 ### Matching Pennies
 We test the performance of agent by making it play against itself, but with difference initialization of the initial policy.
 
+The gradient field of this game is 
+![alt-text](img/fig10.png)
+
 #### Against [0, 1] for 100,000 iterations  
 Some converges to an optimal policy.  
 Hyperparameter - alpha = 0.5, lr_w, lr_l = 0.001, 0.002

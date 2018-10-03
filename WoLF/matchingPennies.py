@@ -24,6 +24,9 @@ def lr_w_decay(t):
 r_11, r_12, r_21, r_22 = 1, -1, -1, 1 
 c_11, c_12, c_21, c_22 = -1, 1, 1, -1 
 
+# r_11, r_12, r_21, r_22 = -2, 0, -3, -1 
+# c_11, c_12, c_21, c_22 = -2, -3, 0, -1 
+
 # Define the game 
 def matchingPennies(action1, action2):
     """
