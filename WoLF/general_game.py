@@ -1,6 +1,3 @@
-# Start with normal Matrix game Matching pennies
-# TODO: Generalize the code
-# TODO: Better code -- Meshgrid
 import numpy as np
 import math
 import matplotlib.pyplot as plt
@@ -20,15 +17,16 @@ def alpha_decay(t):
 def lr_w_decay(t):
     return 1/(20000 + t)
 
-# Define the game here
-# r_11, r_12, r_21, r_22 = 1, -1, -1, 1 
-# c_11, c_12, c_21, c_22 = -1, 1, 1, -1 
 
-r_11, r_12, r_21, r_22 = -2, 0, -3, -1 
-c_11, c_12, c_21, c_22 = -2, -3, 0, -1 
+# Define the game here
+r_11, r_12, r_21, r_22 = 1, -1, -1, 1 
+c_11, c_12, c_21, c_22 = -1, 1, 1, -1 
+
+# r_11, r_12, r_21, r_22 = -2, 0, -3, -1 
+# c_11, c_12, c_21, c_22 = -2, -3, 0, -1 
 
 # Define the game 
-def matchingPennies(action1, action2):
+def general_game(action1, action2):
     """
     Return the reward from player1 and player2 in the game 
     matching pennies.
@@ -59,12 +57,12 @@ def matchingPennies(action1, action2):
         return r_22, c_22 
 
 class Player(object):
-    def __init__(self):
+    def __init__(self, policy=[0.8, 0.2]):
         # Only 2 actions and one state
         self.Q = [0, 0]
 
         # Policy - just half.
-        self.policy = [0.8, 0.2]
+        self.policy = policy
         self.avg_policy = [0, 0]
 
         # Count at state - only one 
@@ -96,75 +94,65 @@ class Player(object):
         self.policy = [p/sum(self.policy) for p in self.policy]
 
 def test_train(init_policy_p1, init_policy_p2, save_step=1000, epoch=200000):
-  p1 = Player()
-  p2 = Player()
-  
-  p1.policy = copy.deepcopy(init_policy_p1)
-  p2.policy = copy.deepcopy(init_policy_p2)
-  
-  del init_policy_p1
-  del init_policy_p2
+    p1 = Player(policy=init_policy_p1)
+    p2 = Player(policy=init_policy_p2)
 
-  # Getting the start policy for reference.
-  p1_prob_tracker = [p1.policy[0]]
-  p2_prob_tracker = [p2.policy[0]]
+    # Getting the start policy for reference.
+    p1_prob_tracker = [p1.policy[0]]
+    p2_prob_tracker = [p2.policy[0]]
 
-  # Training Loop 
-  for i in range(epoch):
+    # Training Loop 
+    for i in range(epoch):
+        # Select action 
+        act_p1 = p1.sample_action()
+        act_p2 = p2.sample_action()
 
-      # Select action 
-      act_p1 = p1.sample_action()
-      act_p2 = p2.sample_action()
+        p1_reward, p2_reward = general_game(act_p1, act_p2)
 
-      p1_reward, p2_reward = matchingPennies(act_p1, act_p2)
+        # Update the Q function - Simple, since no next state
+        alpha = alpha_decay(i)
+        p1.Q[act_p1] = (1-alpha) * p1.Q[act_p1] + alpha*(p1_reward)    
+        p2.Q[act_p2] = (1-alpha) * p2.Q[act_p2] + alpha*(p2_reward)
 
-      # Update the Q function - Simple, since no next state
-      alpha = alpha_decay(i)
-      p1.Q[act_p1] = (1-alpha) * p1.Q[act_p1] + alpha*(p1_reward)    
-      p2.Q[act_p2] = (1-alpha) * p2.Q[act_p2] + alpha*(p2_reward)
+        # Update the average policy
+        p1.count_state += 1
+        p1.update_avgPolicy()
 
-      # Update the average policy
-      p1.count_state += 1
-      p1.update_avgPolicy()
+        p2.count_state += 1
+        p2.update_avgPolicy()
 
-      p2.count_state += 1
-      p2.update_avgPolicy()
+        lr_w = lr_w_decay(i)
+        lr_l = lr_w * 2
 
-      lr_w = lr_w_decay(i)
-      lr_l = lr_w * 2
+        if p1.get_expected_val(p1.policy) > p1.get_expected_val(p1.avg_policy):
+            p1.update_policy(lr_w)
+        else:
+            p1.update_policy(lr_l)
 
-      if p1.get_expected_val(p1.policy) > p1.get_expected_val(p1.avg_policy):
-          p1.update_policy(lr_w)
-      else:
-          p1.update_policy(lr_l)
+        if p2.get_expected_val(p2.policy) > p2.get_expected_val(p2.avg_policy):
+            p2.update_policy(lr_w)
+        else:
+            p2.update_policy(lr_l)
 
-      if p2.get_expected_val(p2.policy) > p2.get_expected_val(p2.avg_policy):
-          p2.update_policy(lr_w)
-      else:
-          p2.update_policy(lr_l)
-      
-      if i % 10000 == 0:
-          print("At {}".format(i))
-      if i % save_step == 0:
-          p1_prob_tracker.append(p1.policy[0])
-          p2_prob_tracker.append(p2.policy[0])
+        if i % 10000 == 0:
+            print(f"At {i}")
+        if i % save_step == 0:
+            p1_prob_tracker.append(p1.policy[0])
+            p2_prob_tracker.append(p2.policy[0])
           
-  print("Policy p1 - ", p1.policy)
-  print("Policy p2 - ", p2.policy)
-  
-  return p1_prob_tracker, p2_prob_tracker, (p1.policy, p2.policy)
+    print(f"Policy p1 - {p1.policy}")
+    print(f"Policy p2 - {p2.policy}") 
 
-policy_test_list = [[1, 0], [0, 1], [0.5, 0.5], [0.2, 0.8], [0.8, 0.2], [0.3, 0.7]]
-y_policy = [0.5, 0.5]
+    return p1_prob_tracker, p2_prob_tracker, (p1.policy, p2.policy)
 
 def plot_learning_curve(policy_test_list, y_policy,is_evol=False ,nrows=3, ncols=2):
     assert len(policy_test_list) == nrows * ncols
     final_policy_all = []
     fig, ax = plt.subplots(nrows=nrows, ncols=ncols)
     if is_evol:
-        fig.suptitle(f"Evolution of player: where player 2 is {str(y_policy)}")
+        fig.suptitle(f"Evolution of player: where player 2 is {y_policy}")
     else:
-        fig.suptitle("Against Player2 - " + str(y_policy))
+        fig.suptitle(f"Against Player2 - {y_policy}" )
 
     for i, ax in enumerate(ax.flat):
         policy_now = policy_test_list[i]
@@ -172,10 +160,10 @@ def plot_learning_curve(policy_test_list, y_policy,is_evol=False ,nrows=3, ncols
         final_policy_all.append(final_policy)
 
         if is_evol:
-            ax.set_title("Player 1 - {}".format(policy_test_list[i]))
+            ax.set_title(f"Player 1 - {policy_test_list[i]}")
             ax.scatter(p1_track, p2_track, s=[i/10 for i in range(len(p1_track))])
         else:
-            ax.set_title("Player 1 - {}".format(policy_test_list[i]))
+            ax.set_title(f"Player 1 - {policy_test_list[i]}")
 
             ax.plot(p1_track, 'C2', label='Player 1')
             ax.plot(p2_track, 'C3', label='Player 2')        
@@ -218,7 +206,7 @@ def plot_gradient():
 
     plt.show()
 
-
-# plot_learning_curve(policy_test_list, y_policy, nrows=3, ncols=2, is_evol=True)
+policy_test_list = [[1, 0], [0, 1], [0.5, 0.5], [0.2, 0.8], [0.8, 0.2], [0.3, 0.7]]
+y_policy = [0.5, 0.5]
+plot_learning_curve(policy_test_list, y_policy, nrows=3, ncols=2, is_evol=True)
 plot_gradient()
-
